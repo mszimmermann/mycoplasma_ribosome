@@ -1,0 +1,12 @@
+Protein,Length of C-extension in MPN,Number of disordered residues (score>0.5) in MPN,Number of predicted helices H in MPN,Number of predicted sheets E in MPN,Number of species with extensions (out of 4396),Number of species with >50% disordered residues in extension (score>0.5),Number of species with >50% helices (H) in extension ,Number of species with >50% sheets (E) in extension ,Length of N-extension in MPN
+S2,46,29 (63%),19 (41%),0 (0%),1956 (44%),1618 (82%),50 (2%),0 (0%)
+L3,74,68 (91%),5 (6%),2 (2%),579 (13%),501 (86%),0 (0%),0 (0%)
+L4,50,2 (4%),15 (30%),10 (20%),3438 (78%),55 (1%),0 (0%),0 (0%)
+L23,139,110 (79%),0 (0%),0 (0%),44 (1%),20 (45%),26 (59%),0 (0%)
+L22,49,46 (93%),23 (46%),0 (0%),212 (4%),193 (91%),84 (39%),0 (0%)
+S3,17,17 (100%),0 (0%),0 (0%),851 (19%),840 (98%),0 (0%),0 (0%)
+L31,25,8 (32%),0 (0%),0 (0%),138 (3%),113 (81%),17 (12%),0 (0%)
+L29,47,11 (23%),28 (59%),0 (0%),159 (3%),150 (94%),42 (26%),0 (0%)
+S6,74,67 (90%),23 (31%),0 (0%),50 (1%),16 (32%),2 (4%),0 (0%)
+S5,,57 (100%),1 (1%),0 (0%),895 (20%),890 (99%),0 (0%),0 (0%),57
+S18,,23 (76%),0 (0%),2 (6%),396 (9%),200 (50%),0 (0%),0 (0%),30
