@@ -5,7 +5,7 @@ addpath('InterPointDistanceMatrix')
 
 % folder with data files
 fileFolder = 'data_ribosomes';
-
+outputFolder = 'output';
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % first read polysome data (for distance of 7nm)
@@ -210,6 +210,8 @@ poly_mono_percentage_fdr = mafdr(poly_mono_percentage_p,'bhfdr',1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 plotdata = [all_percentage_mean, mono_percentage_mean, poly_percentage_mean];
 plotdatastd = [all_percentage_std, mono_percentage_std, poly_percentage_std];
+plotdatap = poly_percentage_p;
+plotdatamonop = poly_mono_percentage_p;
 plotdatafdr = poly_percentage_fdr;
 plotdatamonofdr = poly_mono_percentage_fdr;
 plotdatamedianfc = poly_percentage_FC;
@@ -217,9 +219,13 @@ plotdatamonomedianfc = poly_mono_percentage_FC;
 
 % define order of plotting the states
 plotorder = [9 5 8 6 4 2 0 3 1 7] + 1;
+riboclassnames = {'1';'2a';'2e';'3';'4';'5';'6a';'6e';'7';'8'};
+
 
 plotdata = plotdata(plotorder,:);
 plotdatastd = plotdatastd(plotorder,:);
+plotdatap = plotdatap(plotorder);
+plotdatamonop = plotdatamonop(plotorder);
 plotdatafdr = plotdatafdr(plotorder);
 plotdatamonofdr = plotdatamonofdr(plotorder);
 plotdatamedianfc = plotdatamedianfc(plotorder);
@@ -229,7 +235,7 @@ plotdatamonomedianfc = plotdatamonomedianfc(plotorder);
 figure
 barh(plotdata)
 set(gca, 'YTick', 1:length(plotorder))
-set(gca, 'YTickLabel', plotorder-1)
+set(gca, 'YTickLabel',riboclassnames)
 hold on 
 errorbar(plotdata(:,1),[1:length(plotdata)]-0.24,...
     plotdatastd(:,1), '.k', 'horizontal');
@@ -260,6 +266,21 @@ print(gcf, '-painters', '-dpng', '-r600', ...
 % print(gcf, '-painters', '-dpdf', '-r600', '-bestfit',...
 %   'figure_plot_bar_main_ribosome_percentages_per_tomogram_all_and_mono_vs_polysome_wmw')
 
+% create a table with data from the plot
+ribosome_percentage_table = table(riboclassnames, plotdata(:,1), plotdatastd(:,1),...
+                                    plotdata(:,2), plotdatastd(:,2),...
+                                    plotdata(:,3), plotdatastd(:,3),...
+                                    plotdatamedianfc, plotdatap, plotdatafdr,...
+                                    plotdatamonomedianfc, plotdatamonop, plotdatamonofdr,...
+                                    'VariableNames',...
+                                    {'Class','All_percent_mean', 'All_percent_std',...
+                                    'Mono_percent_mean', 'Mono_percent_std',...
+                                    'Poly_percent_mean', 'Poly_percent_std',...
+                                    'Median_FC_log2_poly_all', 'Median_p_poly_all', 'Median_FDR_poly_all',...
+                                    'Median_FC_log2_poly_mono', 'Median_p_poly_mono', 'Median_FDR_poly_mono'});
+                                    
+writetable(ribosome_percentage_table, [outputFolder, filesep, 'ribosome_percentage_statistics.csv']);
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % calculate theoretical distributions of ribosome pairs based on 
@@ -288,7 +309,7 @@ end
             
 % define number of shuffles. The more shuffles, the longer the
 % calculations. Tip: change to 10000 for better resolution of p-values. 
-shufflen=1000;
+shufflen=10000;
 shuffled_matrixes = zeros(length(ribosome_pair_ids), shufflen);
 % calculate number of polysomes of certain length
 shuffled_polysome_length = zeros(shufflen, size(polysomeData,2));
@@ -478,7 +499,8 @@ for i=1:length(plotorder)
         plot(pairs_theor_all*[1 1],...
             [1 max(h.Values)], 'g', 'LineWidth', 2)
               
-        title(sprintf('%d %d', cluster_names(rowi), cluster_names(coli)))
+        %title(sprintf('%d %d', cluster_names(rowi), cluster_names(coli)))
+        title(sprintf('%s %s', riboclassnames{i}, riboclassnames{j}))
     
         curP_shuffled = pmat_shuffled_fdr(rowi, coli);
        
@@ -519,17 +541,19 @@ ribosome_pairs_exp_freq = ribosome_pairs_experimental./sum(ribosome_pairs_experi
 
 plotdata = (ribosome_pairs_exp_freq./...
     ribosome_pairs_shuffled_freq);
+plotdatap = pmat_shuffled;
 plotdatafdr = pmat_shuffled_fdr;
 
 plotdata=plotdata( plotorder, plotorder );
+plotdatap=plotdatap( plotorder, plotorder );
 plotdatafdr=plotdatafdr( plotorder, plotorder );
 
 figure
 imagesc(plotdata)
 set(gca, 'XTick', 1:length(plotorder))
-set(gca, 'XTickLabel', plotorder-1) 
+set(gca, 'XTickLabel', riboclassnames) 
 set(gca, 'YTick', 1:length(plotorder))
-set(gca, 'YTickLabel', plotorder-1) 
+set(gca, 'YTickLabel', riboclassnames) 
 h = colorbar;
 set(get(h,'label'),'string','Experimental/Shuffled');
 caxis([0 2])
@@ -558,6 +582,27 @@ orient landscape
 %     'figure_imagesc_experimental_fs_shuffled')
 print(gcf, '-painters', '-dpng', '-r600', ...
     'figure_imagesc_experimental_fs_shuffled')
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% save plotting data to table
+% divided frequencies
+table_plotdata=array2table(plotdata, 'VariableNames', riboclassnames);
+table_plotdata.Class = riboclassnames;
+table_plotdata = table_plotdata(:,['Class'; riboclassnames]);
+writetable(table_plotdata, [outputFolder, filesep, 'table_exp_div_by_shuffled_freq.csv']);
+
+% shuffled p-values
+table_plotdatap=array2table(plotdatap, 'VariableNames', riboclassnames);
+table_plotdatap.Class = riboclassnames;
+table_plotdatap = table_plotdatap(:,['Class'; riboclassnames]);
+writetable(table_plotdatap, [outputFolder, filesep, 'table_exp_shuffled_freq_Pvalues.csv']);
+
+% shuffled FDR
+table_plotdatafdr=array2table(plotdatafdr, 'VariableNames', riboclassnames);
+table_plotdatafdr.Class = riboclassnames;
+table_plotdatafdr= table_plotdatafdr(:,['Class'; riboclassnames]);
+writetable(table_plotdatafdr, [outputFolder, filesep, 'table_exp_shuffled_freq_FDR.csv']);
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
